@@ -2,10 +2,11 @@
 Coherent Line Drawing - Pablo Eliseo
 """
 #Edge Tangent Flow
+import warnings
 import math
 import cv2
 import numpy as np
-
+warnings.filterwarnings("error")
 #######################   AUX FUNCTIONS   ##########################
 def compute_tangent(v):
     theta = math.pi/2 #90º
@@ -21,7 +22,7 @@ def compute_tangent(v):
 
 # t_0 (0) no equation, specified at the end of the section
 def initial_etf(img):
-    tangent = np.zeros(img.shape + (2,), dtype = np.float32)
+    tangent = np.zeros(img.shape + (2,), dtype=np.float32)
     img_n = cv2.normalize(img.astype("float32"), None, 0.0, 1.0, cv2.NORM_MINMAX)
 
     #Generate gradients
@@ -45,28 +46,33 @@ def initial_etf(img):
 
 # t_new for every pixel, no equation
 def compute_image_etf(tangent, kernel, gradient_mag):
+    tangent_new = np.zeros(tangent.shape, dtype=np.float32)
     h, w = tangent.shape[0], tangent.shape[1]
     for x in range(h):
         for y in range(w):
-            tangent[x][y] = compute_new_etf(x, y, tangent, kernel, gradient_mag)
-    return tangent
+            tangent_new[x][y] = compute_new_etf(x, y, tangent, kernel, gradient_mag)
+    return tangent_new
    
 # t_new (1)
 def compute_new_etf(x, y, tangent, kernel, gradient_mag):
-    h, w = tangent.shape[0], tangent.shape[1]
-    for c in range(x - kernel, x + kernel + 1):
-        for r in range(y - kernel, y + kernel + 1):
-            x_tan = tangent[x][y]
-            if (r < 0 or r >= h or c < 0 or c >= w):
-                continue
-            y_tan = tangent[c][r]
-            a = np.array([x, y])
-            b = np.array([c, r])
-            phi = compute_phi(x_tan, y_tan)
-            ws = compute_ws(a, b, kernel)
-            wm = compute_wm(gradient_mag[x][y], gradient_mag[c][r])
-            wd = compute_wd(x_tan, y_tan)
-            t_new = phi * y_tan * ws * wm * wd
+    try:
+        t_new = np.zeros(2, dtype=np.float32)
+        h, w = tangent.shape[0], tangent.shape[1]
+        for c in range(x - kernel, x + kernel + 1):
+            for r in range(y - kernel, y + kernel + 1):
+                x_tan = tangent[x][y]
+                if (r < 0 or r >= w or c < 0 or c >= h):
+                    continue
+                y_tan = tangent[c][r]
+                a = np.array([x, y])
+                b = np.array([c, r])
+                phi = compute_phi(x_tan, y_tan)
+                ws = compute_ws(a, b, kernel)
+                wm = compute_wm(gradient_mag[x][y], gradient_mag[c][r])
+                wd = compute_wd(x_tan, y_tan)
+                t_new += phi * y_tan * ws * wm * wd
+    except RuntimeWarning:
+        print("error")
     return t_new
 
 # ws (2)
@@ -98,7 +104,8 @@ if __name__ == '__main__':
     KERNEL = 5
     IMG = cv2.imread("prueba1.jpg", 0) #0 for grayscale image
     TANGENT, GRADIENT_MAG = initial_etf(IMG)
-    TANGENT = compute_image_etf(TANGENT, KERNEL, GRADIENT_MAG)
-
+    ITERATIONS = 1
+    for it in range(ITERATIONS):
+        TANGENT = compute_image_etf(TANGENT, KERNEL, GRADIENT_MAG)
     print(TANGENT)
     
