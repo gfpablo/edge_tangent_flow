@@ -2,11 +2,9 @@
 Coherent Line Drawing - Pablo Eliseo
 """
 #Edge Tangent Flow
-import warnings
 import math
 import cv2
 import numpy as np
-warnings.filterwarnings("error")
 #######################   AUX FUNCTIONS   ##########################
 def compute_tangent(v):
     theta = math.pi/2 #90º
@@ -55,24 +53,21 @@ def compute_image_etf(tangent, kernel, gradient_mag):
    
 # t_new (1)
 def compute_new_etf(x, y, tangent, kernel, gradient_mag):
-    try:
-        t_new = np.zeros(2, dtype=np.float32)
-        h, w = tangent.shape[0], tangent.shape[1]
-        for c in range(x - kernel, x + kernel + 1):
-            for r in range(y - kernel, y + kernel + 1):
-                x_tan = tangent[x][y]
-                if (r < 0 or r >= w or c < 0 or c >= h):
-                    continue
-                y_tan = tangent[c][r]
-                a = np.array([x, y])
-                b = np.array([c, r])
-                phi = compute_phi(x_tan, y_tan)
-                ws = compute_ws(a, b, kernel)
-                wm = compute_wm(gradient_mag[x][y], gradient_mag[c][r])
-                wd = compute_wd(x_tan, y_tan)
-                t_new += phi * y_tan * ws * wm * wd
-    except RuntimeWarning:
-        print("error")
+    t_new = np.zeros(2, dtype=np.float32)
+    h, w = tangent.shape[0], tangent.shape[1]
+    for c in range(x - kernel, x + kernel + 1):
+        for r in range(y - kernel, y + kernel + 1):
+            x_tan = tangent[x][y]
+            if (r < 0 or r >= w or c < 0 or c >= h):
+                continue
+            y_tan = tangent[c][r]
+            a = np.array([x, y])
+            b = np.array([c, r])
+            phi = compute_phi(x_tan, y_tan)
+            ws = compute_ws(a, b, kernel)
+            wm = compute_wm(gradient_mag[x][y], gradient_mag[c][r])
+            wd = compute_wd(x_tan, y_tan)
+            t_new += phi * y_tan * ws * wm * wd
     return t_new
 
 # ws (2)
