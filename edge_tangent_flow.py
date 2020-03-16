@@ -6,6 +6,14 @@ import math
 import cv2
 import numpy as np
 
+#######################   AUX FUNCTIONS   ##########################
+def compute_tangent(v):
+    theta = math.pi/2 #90º
+    #rot matrix 90º
+    x = v[0] * np.cos(theta) - v[1] * np.sin(theta)
+    y = v[1] * np.cos(theta) + v[0] * np.sin(theta)
+    return [x, y]
+
 
 ####################################################################
 ######################    PAPER'S FUNCTIONS    #####################
@@ -88,17 +96,9 @@ def compute_phi(x_tan, y_tan):
 
 if __name__ == '__main__':
     KERNEL = 5
-    IMG = cv2.imread("prueba.jpg", 0) #0 for grayscale image
+    IMG = cv2.imread("prueba1.jpg", 0) #0 for grayscale image
     TANGENT, GRADIENT_MAG = initial_etf(IMG)
     TANGENT = compute_image_etf(TANGENT, KERNEL, GRADIENT_MAG)
 
     print(TANGENT)
-
-
-#######################   AUX FUNCTIONS   ##########################
-def compute_tangent(v):
-    theta = math.pi/2 #90º
-    #rot matrix 90º
-    x = v[0] * np.cos(theta) - v[1] * np.sin(theta)
-    y = v[1] * np.cos(theta) + v[0] * np.sin(theta)
-    return [x, y]
+    
